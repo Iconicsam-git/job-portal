@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import Quill from 'quill'
-import { JobCategories, JobLocations } from '../assets/assets';
+import { JobCategories } from '../assets/assets';
+import CitySelect from '../components/CitySelect';
 import axios from 'axios';
 import { AppContext } from '../context/AppContext';
 import { toast } from 'react-toastify';
@@ -12,6 +13,7 @@ const AddJob = () => {
     const [category, setCategory] = useState('Programming');
     const [level, setLevel] = useState('Beginner level');
     const [salary, setSalary] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const editorRef = useRef(null)
     const quillRef = useRef(null)
@@ -20,6 +22,8 @@ const AddJob = () => {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
+
+        setIsSubmitting(true)
 
         try {
 
@@ -41,6 +45,8 @@ const AddJob = () => {
 
         } catch (error) {
             toast.error(error.message)
+        } finally {
+            setIsSubmitting(false)
         }
 
 
@@ -86,13 +92,13 @@ const AddJob = () => {
                     </select>
                 </div>
 
-                <div>
+                <div className='w-full sm:w-64'>
                     <p className='mb-2'>Job Location</p>
-                    <select className='w-full px-3 py-2 border-2 border-gray-300 rounded' onChange={e => setLocation(e.target.value)}>
-                        {JobLocations.map((location, index) => (
-                            <option key={index} value={location}>{location}</option>
-                        ))}
-                    </select>
+                    <CitySelect
+                        value={location}
+                        onChange={setLocation}
+                        placeholder='Select or type any city'
+                    />
                 </div>
 
                 <div>
@@ -110,7 +116,10 @@ const AddJob = () => {
                 <input min={0} className='w-full px-3 py-2 border-2 border-gray-300 rounded sm:w-[120px]' onChange={e => setSalary(e.target.value)} type="Number" placeholder='2500' />
             </div>
 
-            <button className='w-28 py-3 mt-4 bg-black text-white rounded'>ADD</button>
+            <button disabled={isSubmitting} className='w-28 py-3 mt-4 bg-black text-white rounded disabled:opacity-60 flex items-center justify-center gap-2'>
+                {isSubmitting && <span className='w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin'></span>}
+                {isSubmitting ? 'Adding...' : 'ADD'}
+            </button>
         </form>
     )
 }

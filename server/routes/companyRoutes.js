@@ -1,5 +1,5 @@
 import express from 'express'
-import { ChangeJobApplicationsStatus, changeVisiblity, getCompanyData, getCompanyJobApplicants, getCompanyPostedJobs, loginCompany, postJob, registerCompany } from '../controllers/companyController.js'
+import { ChangeJobApplicationsStatus, changeVisiblity, getCompanyData, getCompanyJobApplicants, getCompanyPostedJobs, googleLoginCompany, loginCompany, postJob, registerCompany, resetCompanyPasswordWithOtp, sendCompanyResetOtp } from '../controllers/companyController.js'
 import upload from '../config/multer.js'
 import { protectCompany } from '../middleware/authMiddleware.js'
 
@@ -10,6 +10,15 @@ router.post('/register', upload.single('image'), registerCompany)
 
 // Company login
 router.post('/login', loginCompany)
+
+// Company login / signup with Google
+router.post('/google', googleLoginCompany)
+
+// Send Company Reset Password OTP
+router.post('/send-reset-otp', sendCompanyResetOtp)
+
+// Reset Company Password With OTP
+router.post('/reset-password-otp', resetCompanyPasswordWithOtp)
 
 // Get company data
 router.get('/company', protectCompany, getCompanyData)

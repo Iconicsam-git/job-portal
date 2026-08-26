@@ -11,6 +11,7 @@ const ManageJobs = () => {
   const navigate = useNavigate()
 
   const [jobs, setJobs] = useState(false)
+  const [updatingJobId, setUpdatingJobId] = useState(null)
 
   const { backendUrl, companyToken } = useContext(AppContext)
 
@@ -38,6 +39,8 @@ const ManageJobs = () => {
   // Function to change Job Visibility 
   const changeJobVisiblity = async (id) => {
 
+    setUpdatingJobId(id)
+
     try {
 
       const { data } = await axios.post(backendUrl + '/api/company/change-visiblity',
@@ -47,13 +50,15 @@ const ManageJobs = () => {
 
       if (data.success) {
         toast.success(data.message)
-        fetchCompanyJobs()
+        await fetchCompanyJobs()
       } else {
         toast.error(data.message)
       }
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      setUpdatingJobId(null)
     }
 
   }
@@ -91,7 +96,10 @@ const ManageJobs = () => {
                 <td className='py-2 px-4 border-b max-sm:hidden' >{job.location}</td>
                 <td className='py-2 px-4 border-b text-center' >{job.applicants}</td>
                 <td className='py-2 px-4 border-b' >
-                  <input onChange={() => changeJobVisiblity(job._id)} className='scale-125 ml-4' type="checkbox" checked={job.visible} />
+                  {updatingJobId === job._id
+                    ? <span className='inline-block w-5 h-5 ml-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin'></span>
+                    : <input onChange={() => changeJobVisiblity(job._id)} className='scale-125 ml-4' type="checkbox" checked={job.visible} />
+                  }
                 </td>
               </tr>
             ))}

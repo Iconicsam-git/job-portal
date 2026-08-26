@@ -1,12 +1,27 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 
-// Function to connect to the MongoDB database
+dns.setServers([
+    "8.8.8.8",
+    "8.8.4.4"
+]);
+
 const connectDB = async () => {
+    try {
+        mongoose.connection.on("connected", () => {
+            console.log("MongoDB Connected");
+        });
 
-    mongoose.connection.on('connected', () => console.log('Database Connected'))
+        await mongoose.connect(`${process.env.MONGODB_URI}/job-portal`, {
+            serverSelectionTimeoutMS: 10000
+        });
 
-    await mongoose.connect(`${process.env.MONGODB_URI}/job-portal`)
+        console.log("Database connection established successfully");
+    } catch (error) {
+        console.error("MongoDB connection failed:");
+        console.error(error.message);
+        process.exit(1);
+    }
+};
 
-}
-
-export default connectDB
+export default connectDB;

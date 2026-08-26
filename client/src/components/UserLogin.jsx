@@ -2,28 +2,21 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 
-const RecruiterLogin = () => {
-
-    const navigate = useNavigate()
+const UserLogin = () => {
 
     const [state, setState] = useState('Login')
     const [name, setName] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
     const [otp, setOtp] = useState('')
-
-    const [image, setImage] = useState(false)
-
-    const [isTextDataSubmited, setIsTextDataSubmited] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
 
     const googleButtonRef = useRef(null)
 
-    const { setShowRecruiterLogin, backendUrl, setCompanyToken, setCompanyData } = useContext(AppContext)
+    const { setShowUserLogin, backendUrl, setUserToken, setUserData } = useContext(AppContext)
 
     const handleGoogleCredential = async (response) => {
 
@@ -31,15 +24,14 @@ const RecruiterLogin = () => {
 
         try {
 
-            const { data } = await axios.post(backendUrl + '/api/company/google', { credential: response.credential })
+            const { data } = await axios.post(backendUrl + '/api/users/google', { credential: response.credential })
 
             if (data.success) {
-                setCompanyData(data.company)
-                setCompanyToken(data.token)
-                localStorage.setItem('companyToken', data.token)
+                setUserData(data.user)
+                setUserToken(data.token)
+                localStorage.setItem('userToken', data.token)
                 toast.success('Logged in successfully')
-                setShowRecruiterLogin(false)
-                navigate('/dashboard')
+                setShowUserLogin(false)
             } else {
                 toast.error(data.message)
             }
@@ -55,32 +47,27 @@ const RecruiterLogin = () => {
     const onSubmitHandler = async (e) => {
         e.preventDefault()
 
-        if (state == "Sign Up" && !isTextDataSubmited) {
-            return setIsTextDataSubmited(true)
-        }
-
         setIsSubmitting(true)
 
         try {
 
             if (state === "Login") {
 
-                const { data } = await axios.post(backendUrl + '/api/company/login', { email, password })
+                const { data } = await axios.post(backendUrl + '/api/users/login', { email, password })
 
                 if (data.success) {
-                    setCompanyData(data.company)
-                    setCompanyToken(data.token)
-                    localStorage.setItem('companyToken', data.token)
+                    setUserData(data.user)
+                    setUserToken(data.token)
+                    localStorage.setItem('userToken', data.token)
                     toast.success('Logged in successfully')
-                    setShowRecruiterLogin(false)
-                    navigate('/dashboard')
+                    setShowUserLogin(false)
                 } else {
                     toast.error(data.message)
                 }
 
             } else if (state === "Send OTP") {
 
-                const { data } = await axios.post(backendUrl + '/api/company/send-reset-otp', { email })
+                const { data } = await axios.post(backendUrl + '/api/users/send-reset-otp', { email })
 
                 if (data.success) {
                     toast.success(data.message)
@@ -91,7 +78,7 @@ const RecruiterLogin = () => {
 
             } else if (state === "Reset Password") {
 
-                const { data } = await axios.post(backendUrl + '/api/company/reset-password-otp', { email, otp, newPassword: password })
+                const { data } = await axios.post(backendUrl + '/api/users/reset-password-otp', { email, otp, newPassword: password })
 
                 if (data.success) {
                     toast.success(data.message)
@@ -104,21 +91,14 @@ const RecruiterLogin = () => {
 
             } else {
 
-                const formData = new FormData()
-                formData.append('name', name)
-                formData.append('password', password)
-                formData.append('email', email)
-                formData.append('image', image)
-
-                const { data } = await axios.post(backendUrl + '/api/company/register', formData)
+                const { data } = await axios.post(backendUrl + '/api/users/register', { name, email, password })
 
                 if (data.success) {
-                    setCompanyData(data.company)
-                    setCompanyToken(data.token)
-                    localStorage.setItem('companyToken', data.token)
+                    setUserData(data.user)
+                    setUserToken(data.token)
+                    localStorage.setItem('userToken', data.token)
                     toast.success('Account created successfully')
-                    setShowRecruiterLogin(false)
-                    navigate('/dashboard')
+                    setShowUserLogin(false)
                 } else {
                     toast.error(data.message)
                 }
@@ -181,7 +161,7 @@ const RecruiterLogin = () => {
     return (
         <div className='absolute top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-sm bg-black/30 flex justify-center items-center'>
             <form onSubmit={onSubmitHandler} className='relative bg-white p-10 rounded-xl text-slate-500'>
-                <h1 className='text-center text-2xl text-neutral-700 font-medium'>Recruiter {state === 'Send OTP' ? 'Reset Password' : state}</h1>
+                <h1 className='text-center text-2xl text-neutral-700 font-medium'>User {state === 'Send OTP' ? 'Reset Password' : state}</h1>
                 <p className='text-sm'>
                     {state === 'Send OTP' 
                         ? 'Enter your email to receive a verification code' 
@@ -189,48 +169,32 @@ const RecruiterLogin = () => {
                             ? 'Enter verification code & new password' 
                             : 'Welcome back! Please sign in to continue'}
                 </p>
-                {state === "Sign Up" && isTextDataSubmited
-                    ? <>
 
-                        <div className='flex items-center gap-4 my-10'>
-                            <label htmlFor="image">
-                                <img className='w-16 rounded-full' src={image ? URL.createObjectURL(image) : assets.upload_area} alt="" />
-                                <input onChange={e => setImage(e.target.files[0])} type="file" id='image' hidden />
-                            </label>
-                            <p>Upload Company <br /> logo</p>
-                        </div>
+                {state === 'Sign Up' && (
+                    <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
+                        <img src={assets.person_icon} alt="" />
+                        <input className='outline-none text-sm' onChange={e => setName(e.target.value)} value={name} type="text" placeholder='Full Name' required />
+                    </div>
+                )}
 
-                    </>
-                    : <>
+                <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
+                    <img src={assets.email_icon} alt="" />
+                    <input className='outline-none text-sm' onChange={e => setEmail(e.target.value)} value={email} type="email" placeholder='Email Id' required readOnly={state === 'Reset Password'} />
+                </div>
 
-                        {state === 'Sign Up' && (
-                            <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                                <img src={assets.person_icon} alt="" />
-                                <input className='outline-none text-sm' onChange={e => setName(e.target.value)} value={name} type="text" placeholder='Company Name' required />
-                            </div>
-                        )}
+                {state === 'Reset Password' && (
+                    <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
+                        <img src={assets.lock_icon} alt="" />
+                        <input className='outline-none text-sm' onChange={e => setOtp(e.target.value)} value={otp} type="text" placeholder='6-Digit OTP Code' required />
+                    </div>
+                )}
 
-                        <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                            <img src={assets.email_icon} alt="" />
-                            <input className='outline-none text-sm' onChange={e => setEmail(e.target.value)} value={email} type="email" placeholder='Email Id' required readOnly={state === 'Reset Password'} />
-                        </div>
-
-                        {state === 'Reset Password' && (
-                            <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                                <img src={assets.lock_icon} alt="" />
-                                <input className='outline-none text-sm' onChange={e => setOtp(e.target.value)} value={otp} type="text" placeholder='6-Digit OTP Code' required />
-                            </div>
-                        )}
-
-                        {state !== 'Send OTP' && (
-                            <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
-                                <img src={assets.lock_icon} alt="" />
-                                <input className='outline-none text-sm' onChange={e => setPassword(e.target.value)} value={password} type="password" placeholder={state === 'Reset Password' ? 'New Password' : 'Password'} required />
-                            </div>
-                        )}
-
-
-                    </>}
+                {state !== 'Send OTP' && (
+                    <div className='border px-4 py-2 flex items-center gap-2 rounded-full mt-5'>
+                        <img src={assets.lock_icon} alt="" />
+                        <input className='outline-none text-sm' onChange={e => setPassword(e.target.value)} value={password} type="password" placeholder={state === 'Reset Password' ? 'New Password' : 'Password'} required />
+                    </div>
+                )}
 
                 {state === "Login" && <p onClick={() => setState("Send OTP")} className='text-sm text-blue-600 mt-4 cursor-pointer'>Forgot password?</p>}
 
@@ -240,13 +204,11 @@ const RecruiterLogin = () => {
                         ? 'Please wait...' 
                         : state === 'Login' 
                             ? 'login' 
-                            : state === 'Send OTP' 
-                                ? 'send verification code' 
-                                : state === 'Reset Password' 
-                                    ? 'verify & reset password' 
-                                    : isTextDataSubmited 
-                                        ? 'create account' 
-                                        : 'next'}
+                            : state === 'Sign Up' 
+                                ? 'create account' 
+                                : state === 'Send OTP' 
+                                    ? 'send verification code' 
+                                    : 'verify & reset password'}
                 </button>
 
                 {
@@ -272,11 +234,11 @@ const RecruiterLogin = () => {
                     )}
                 </div>
 
-                <img onClick={e => setShowRecruiterLogin(false)} className='absolute top-5 right-5 cursor-pointer' src={assets.cross_icon} alt="" />
+                <img onClick={e => setShowUserLogin(false)} className='absolute top-5 right-5 cursor-pointer' src={assets.cross_icon} alt="" />
 
             </form>
         </div>
     )
 }
 
-export default RecruiterLogin
+export default UserLogin

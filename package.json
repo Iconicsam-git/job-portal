@@ -1,0 +1,12 @@
+{
+  "name": "job-portal-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root workspace runner for MERN Job Portal System",
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "client": "npm run dev --prefix client",
+    "server": "npm run server --prefix server",
+    "start": "npm run start --prefix server"
+  }
+}

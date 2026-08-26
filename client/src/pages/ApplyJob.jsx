@@ -10,20 +10,18 @@ import JobCard from '../components/JobCard'
 import Footer from '../components/Footer'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import { useAuth } from '@clerk/clerk-react'
 
 const ApplyJob = () => {
 
   const { id } = useParams()
 
-  const { getToken } = useAuth()
-
   const navigate = useNavigate()
 
   const [JobData, setJobData] = useState(null)
   const [isAlreadyApplied, setIsAlreadyApplied] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
 
-  const { jobs, backendUrl, userData, userApplications, fetchUserApplications } = useContext(AppContext)
+  const { jobs, backendUrl, userData, userToken, userApplications, fetchUserApplications } = useContext(AppContext)
 
   const fetchJob = async () => {
 
@@ -55,11 +53,11 @@ const ApplyJob = () => {
         return toast.error('Upload resume to apply')
       }
 
-      const token = await getToken()
+      setIsApplying(true)
 
       const { data } = await axios.post(backendUrl + '/api/users/apply',
         { jobId: JobData._id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${userToken}` } }
       )
 
       if (data.success) {
@@ -71,6 +69,8 @@ const ApplyJob = () => {
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      setIsApplying(false)
     }
   }
 
@@ -124,7 +124,10 @@ const ApplyJob = () => {
             </div>
 
             <div className='flex flex-col justify-center text-end text-sm max-md:mx-auto max-md:text-center'>
-              <button onClick={applyHandler} className='bg-blue-600 p-2.5 px-10 text-white rounded'>{isAlreadyApplied ? 'Already Applied' : 'Apply Now'}</button>
+              <button onClick={applyHandler} disabled={isAlreadyApplied || isApplying} className='bg-blue-600 p-2.5 px-10 text-white rounded disabled:opacity-60 inline-flex items-center gap-2'>
+                {isApplying && <span className='w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin'></span>}
+                {isApplying ? 'Applying...' : isAlreadyApplied ? 'Already Applied' : 'Apply Now'}
+              </button>
               <p className='mt-1 text-gray-600'>Posted {moment(JobData.date).fromNow()}</p>
             </div>
 
@@ -134,7 +137,10 @@ const ApplyJob = () => {
             <div className='w-full lg:w-2/3'>
               <h2 className='font-bold text-2xl mb-4'>Job description</h2>
               <div className='rich-text' dangerouslySetInnerHTML={{ __html: JobData.description }}></div>
-              <button onClick={applyHandler} className='bg-blue-600 p-2.5 px-10 text-white rounded mt-10'>{isAlreadyApplied ? 'Already Applied' : 'Apply Now'}</button>
+              <button onClick={applyHandler} disabled={isAlreadyApplied || isApplying} className='bg-blue-600 p-2.5 px-10 text-white rounded mt-10 disabled:opacity-60 inline-flex items-center gap-2'>
+                {isApplying && <span className='w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin'></span>}
+                {isApplying ? 'Applying...' : isAlreadyApplied ? 'Already Applied' : 'Apply Now'}
+              </button>
             </div>
             {/* Right Section More Jobs */}
             <div className='w-full lg:w-1/3 mt-8 lg:mt-0 lg:ml-8 space-y-5'>

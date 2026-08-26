@@ -2,17 +2,27 @@ import { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import { assets, JobCategories, JobLocations } from '../assets/assets'
 import JobCard from './JobCard'
+import CitySelect from './CitySelect'
 
 const JobListing = () => {
 
-    const { isSearched, searchFilter, setSearchFilter, jobs } = useContext(AppContext)
+    const { isSearched, searchFilter, setSearchFilter, jobs, jobsLoading } = useContext(AppContext)
 
     const [showFilter, setShowFilter] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedCategories, setSelectedCategories] = useState([])
     const [selectedLocations, setSelectedLocations] = useState([])
+    const [cityInput, setCityInput] = useState('')
 
     const [filteredJobs, setFilteredJobs] = useState(jobs)
+
+    // Dynamic list of locations from active jobs combined with defaults
+    const availableLocations = Array.from(
+        new Set([
+            ...JobLocations,
+            ...jobs.map(j => j.location).filter(Boolean)
+        ])
+    )
 
     const handleCategoryChange = (category) => {
         setSelectedCategories(
@@ -26,11 +36,24 @@ const JobListing = () => {
         )
     }
 
+    const handleAddCityFromSearch = (city) => {
+        setCityInput(city)
+        if (city && !selectedLocations.includes(city)) {
+            setSelectedLocations(prev => [...prev, city])
+        }
+    }
+
     useEffect(() => {
 
         const matchesCategory = job => selectedCategories.length === 0 || selectedCategories.includes(job.category)
 
-        const matchesLocation = job => selectedLocations.length === 0 || selectedLocations.includes(job.location)
+        const matchesLocation = job => {
+            if (selectedLocations.length === 0) return true
+            return selectedLocations.some(loc => 
+                job.location.toLowerCase().includes(loc.toLowerCase()) ||
+                loc.toLowerCase().includes(job.location.toLowerCase())
+            )
+        }
 
         const matchesTitle = job => searchFilter.title === "" || job.title.toLowerCase().includes(searchFilter.title.toLowerCase())
 
@@ -100,9 +123,36 @@ const JobListing = () => {
                 {/* Location Filter */}
                 <div className={showFilter ? "" : "max-lg:hidden"}>
                     <h4 className='font-medium text-lg py-4 pt-14'>Search by Location</h4>
-                    <ul className='space-y-4 text-gray-600'>
+                    
+                    <div className='mb-4'>
+                        <CitySelect
+                            value={cityInput}
+                            onChange={handleAddCityFromSearch}
+                            placeholder='Search any city in the world...'
+                            inputClassName='text-sm'
+                        />
+                    </div>
+
+                    {/* Selected custom location tags */}
+                    {selectedLocations.filter(loc => !availableLocations.includes(loc)).length > 0 && (
+                        <div className='mb-4 flex flex-wrap gap-2'>
+                            {selectedLocations.filter(loc => !availableLocations.includes(loc)).map((loc, idx) => (
+                                <span key={idx} className='inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-xs px-2.5 py-1 rounded border border-gray-300'>
+                                    {loc}
+                                    <img
+                                        onClick={() => handleLocationChange(loc)}
+                                        className='cursor-pointer w-3 h-3'
+                                        src={assets.cross_icon}
+                                        alt="remove"
+                                    />
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    <ul className='space-y-4 text-gray-600 max-h-60 overflow-y-auto pr-1'>
                         {
-                            JobLocations.map((location, index) => (
+                            availableLocations.map((location, index) => (
                                 <li className='flex gap-3 items-center' key={index}>
                                     <input
                                         className='scale-125'
@@ -122,11 +172,19 @@ const JobListing = () => {
             <section className='w-full lg:w-3/4 text-gray-800 max-lg:px-4'>
                 <h3 className='font-medium text-3xl py-2' id='job-list'>Latest jobs</h3>
                 <p className='mb-8'>Get your desired job from top companies</p>
-                <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4'>
-                    {filteredJobs.slice((currentPage - 1) * 6, currentPage * 6).map((job, index) => (
-                        <JobCard key={index} job={job} />
-                    ))}
-                </div>
+                {jobsLoading ? (
+                    <div className='flex justify-center py-20'>
+                        <div className='w-12 h-12 border-4 border-gray-300 border-t-4 border-t-blue-400 rounded-full animate-spin'></div>
+                    </div>
+                ) : filteredJobs.length === 0 ? (
+                    <p className='text-center text-gray-500 py-20'>No jobs found matching your filters.</p>
+                ) : (
+                    <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4'>
+                        {filteredJobs.slice((currentPage - 1) * 6, currentPage * 6).map((job, index) => (
+                            <JobCard key={index} job={job} />
+                        ))}
+                    </div>
+                )}
 
 
                 {/* Pagination */}

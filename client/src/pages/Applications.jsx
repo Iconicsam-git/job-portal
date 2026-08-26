@@ -4,33 +4,30 @@ import { assets } from '../assets/assets'
 import moment from 'moment'
 import Footer from '../components/Footer'
 import { AppContext } from '../context/AppContext'
-import { useAuth, useUser } from '@clerk/clerk-react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Loading from '../components/Loading'
 
 const Applications = () => {
 
-  const { user } = useUser()
-  const { getToken } = useAuth()
-
   const [isEdit, setIsEdit] = useState(false)
   const [resume, setResume] = useState(null)
+  const [isUploading, setIsUploading] = useState(false)
 
-  const { backendUrl, userData, userApplications, fetchUserData, fetchUserApplications } = useContext(AppContext)
+  const { backendUrl, userToken, userData, userApplications, fetchUserData, fetchUserApplications } = useContext(AppContext)
 
   const updateResume = async () => {
+
+    setIsUploading(true)
 
     try {
 
       const formData = new FormData()
       formData.append('resume', resume)
 
-      const token = await getToken()
-
       const { data } = await axios.post(backendUrl + '/api/users/update-resume',
         formData,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${userToken}` } }
       )
 
       if (data.success) {
@@ -44,15 +41,16 @@ const Applications = () => {
       toast.error(error.message)
     }
 
+    setIsUploading(false)
     setIsEdit(false)
     setResume(null)
   }
 
   useEffect(() => {
-    if (user) {
+    if (userToken) {
       fetchUserApplications()
     }
-  }, [user])
+  }, [userToken])
 
   return userData ? (
     <>
@@ -68,7 +66,10 @@ const Applications = () => {
                   <input id='resumeUpload' onChange={e => setResume(e.target.files[0])} accept='application/pdf' type="file" hidden />
                   <img src={assets.profile_upload_icon} alt="" />
                 </label>
-                <button onClick={updateResume} className='bg-green-100 border border-green-400 rounded-lg px-4 py-2'>Save</button>
+                <button onClick={updateResume} disabled={isUploading || !resume} className='bg-green-100 border border-green-400 rounded-lg px-4 py-2 disabled:opacity-60 flex items-center gap-2'>
+                  {isUploading && <span className='w-4 h-4 border-2 border-green-400/40 border-t-green-600 rounded-full animate-spin'></span>}
+                  {isUploading ? 'Saving...' : 'Save'}
+                </button>
               </>
               : <div className='flex gap-2'>
                 <a target='_blank' href={userData.resume} className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg'>

@@ -10,6 +10,7 @@ const ViewApplications = () => {
   const { backendUrl, companyToken } = useContext(AppContext)
 
   const [applicants, setApplicants] = useState(false)
+  const [updatingId, setUpdatingId] = useState(null)
 
   // Function to fetch company Job Applications data 
   const fetchCompanyJobApplications = async () => {
@@ -34,6 +35,9 @@ const ViewApplications = () => {
 
   // Function to Update Job Applications Status 
   const changeJobApplicationStatus = async (id, status) => {
+
+    setUpdatingId(id)
+
     try {
 
       const { data } = await axios.post(backendUrl + '/api/company/change-status',
@@ -42,13 +46,16 @@ const ViewApplications = () => {
       )
 
       if (data.success) {
-        fetchCompanyJobApplications()
+        toast.success(data.message)
+        await fetchCompanyJobApplications()
       } else {
         toast.error(data.message)
       }
 
     } catch (error) {
       toast.error(error.message)
+    } finally {
+      setUpdatingId(null)
     }
   }
 
@@ -94,7 +101,9 @@ const ViewApplications = () => {
                   </a>
                 </td>
                 <td className='py-2 px-4 border-b relative'>
-                  {applicant.status === "Pending"
+                  {updatingId === applicant._id
+                    ? <span className='inline-block w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin'></span>
+                    : applicant.status === "Pending"
                     ? <div className='relative inline-block text-left group'>
                       <button className='text-gray-500 action-button'>...</button>
                       <div className='z-10 hidden absolute right-0 md:left-0 top-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow group-hover:block'>
