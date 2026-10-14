@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse';
+import '../config/polyfills.js';
 import fs from 'fs';
 
 // Curated comprehensive skills dictionary for automated matching
@@ -70,6 +70,7 @@ export const extractTextFromPDF = async ({ buffer, filePath, url }) => {
             return '';
         }
 
+        const { PDFParse } = await import('pdf-parse');
         const parser = new PDFParse({ data: pdfBuffer });
         const result = await parser.getText();
         await parser.destroy();

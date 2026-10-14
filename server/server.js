@@ -1,3 +1,4 @@
+import './config/polyfills.js'
 import './config/instrument.js'
 import express from 'express'
 import cors from 'cors'
@@ -35,7 +36,9 @@ app.use('/api/admin', adminRoutes)
 // Port
 const PORT = process.env.PORT || 5000
 
-Sentry.setupExpressErrorHandler(app);
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
