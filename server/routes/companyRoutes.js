@@ -1,5 +1,5 @@
 import express from 'express'
-import { ChangeJobApplicationsStatus, changeVisiblity, getCompanyData, getCompanyJobApplicants, getCompanyPostedJobs, googleLoginCompany, loginCompany, postJob, registerCompany, resetCompanyPasswordWithOtp, sendCompanyResetOtp } from '../controllers/companyController.js'
+import { ChangeJobApplicationsStatus, changeVisiblity, getCompanyData, getCompanyJobApplicants, getCompanyPostedJobs, googleLoginCompany, loginCompany, postJob, registerCompany, rescreenApplicant, resetCompanyPasswordWithOtp, retryApplicationNotification, sendCompanyResetOtp } from '../controllers/companyController.js'
 import upload from '../config/multer.js'
 import { protectCompany } from '../middleware/authMiddleware.js'
 
@@ -29,11 +29,17 @@ router.post('/post-job', protectCompany, postJob)
 // Get Applicants Data of Company
 router.get('/applicants', protectCompany, getCompanyJobApplicants)
 
+// Re-screen Applicant
+router.post('/rescreen-applicant', protectCompany, rescreenApplicant)
+
 // Get  Company Job List
 router.get('/list-jobs', protectCompany, getCompanyPostedJobs)
 
 // Change Applcations Status 
 router.post('/change-status', protectCompany, ChangeJobApplicationsStatus)
+
+// Retry Notification Email for Application
+router.post('/retry-notification', protectCompany, retryApplicationNotification)
 
 // Change Applcations Visiblity 
 router.post('/change-visiblity', protectCompany, changeVisiblity)

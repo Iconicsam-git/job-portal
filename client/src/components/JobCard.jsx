@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const JobCard = ({ job }) => {
@@ -23,4 +24,4 @@ const JobCard = ({ job }) => {
   )
 }
 
-export default JobCard
+export default memo(JobCard)

@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt'
 import { OAuth2Client } from 'google-auth-library'
 import generateToken from "../utils/generateToken.js"
 import transporter from "../config/nodemailer.js"
+import { extractTextFromPDF, evaluateResumeAgainstJob } from "../utils/resumeScreening.js"
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
@@ -172,14 +173,38 @@ export const applyForJob = async (req, res) => {
             return res.json({ success: false, message: 'Job Not Found' })
         }
 
+        let resumeText = req.user.resumeText || ''
+        if (!resumeText && req.user.resume) {
+            try {
+                resumeText = await extractTextFromPDF({ url: req.user.resume })
+                if (resumeText) {
+                    await User.findByIdAndUpdate(userId, { resumeText })
+                }
+            } catch (parseErr) {
+                console.error("Resume parsing error during apply:", parseErr.message)
+            }
+        }
+
+        // Run automated resume screening and job matching evaluation
+        const screeningResult = evaluateResumeAgainstJob(resumeText, jobData)
+
         await JobApplication.create({
             companyId: jobData.companyId,
             userId,
             jobId,
+            status: 'Pending',
+            suitabilityScore: screeningResult.suitabilityScore,
+            recommendation: screeningResult.recommendation,
+            matchDetails: screeningResult.matchDetails,
             date: Date.now()
         })
 
-        res.json({ success: true, message: 'Applied Successfully' })
+        res.json({
+            success: true,
+            message: 'Applied Successfully',
+            suitabilityScore: screeningResult.suitabilityScore,
+            recommendation: screeningResult.recommendation
+        })
 
     } catch (error) {
         res.json({ success: false, message: error.message })
@@ -222,6 +247,15 @@ export const updateUserResume = async (req, res) => {
         const userData = await User.findById(userId)
 
         if (resumeFile) {
+            try {
+                const extractedText = await extractTextFromPDF({ filePath: resumeFile.path })
+                if (extractedText) {
+                    userData.resumeText = extractedText
+                }
+            } catch (parseErr) {
+                console.error("Error extracting text from uploaded resume:", parseErr.message)
+            }
+
             const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)
             userData.resume = resumeUpload.secure_url
         }

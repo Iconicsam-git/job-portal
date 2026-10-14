@@ -1,12 +1,26 @@
 import Job from "../models/Job.js"
+import { normalizeLocation } from "../utils/locationHelper.js"
 
-
-
-// Get All Jobs
+// Get All Jobs (with optional normalized query filtering)
 export const getJobs = async (req, res) => {
     try {
+        const { location, category, title } = req.query
+        let query = { visible: true }
 
-        const jobs = await Job.find({ visible: true })
+        if (location) {
+            const canonical = normalizeLocation(location)
+            query.location = { $regex: canonical || location, $options: 'i' }
+        }
+
+        if (category) {
+            query.category = { $regex: category, $options: 'i' }
+        }
+
+        if (title) {
+            query.title = { $regex: title, $options: 'i' }
+        }
+
+        const jobs = await Job.find(query)
             .populate({ path: 'companyId', select: '-password' })
 
         res.json({ success: true, jobs })

@@ -7,7 +7,7 @@ const Navbar = () => {
 
     const navigate = useNavigate()
 
-    const { setShowRecruiterLogin, setShowUserLogin, userData, logoutUser } = useContext(AppContext)
+    const { setShowRecruiterLogin, setShowUserLogin, setShowAdminLogin, userData, logoutUser, adminToken } = useContext(AppContext)
 
     const handleLogout = () => {
         logoutUser()
@@ -24,9 +24,15 @@ const Navbar = () => {
                             <Link to={'/applications'}>Applied Jobs</Link>
                             <p>|</p>
                             <p className='max-sm:hidden'>Hi, {userData.name}</p>
+                            {adminToken && <button onClick={() => navigate('/admin-dashboard')} className='text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1 text-xs font-semibold'>Admin Panel</button>}
                             <button onClick={handleLogout} className='text-gray-600 border border-gray-300 rounded-full px-4 py-1 text-sm'>Logout</button>
                         </div>
-                        : <div className='flex gap-4 max-sm:text-xs'>
+                        : <div className='flex gap-3 sm:gap-4 items-center max-sm:text-xs'>
+                            {adminToken ? (
+                                <button onClick={() => navigate('/admin-dashboard')} className='text-indigo-600 font-medium hover:underline'>Admin Panel</button>
+                            ) : (
+                                <button onClick={() => setShowAdminLogin(true)} className='text-gray-500 hover:text-indigo-600 font-medium'>Admin Portal</button>
+                            )}
                             <button onClick={e => setShowRecruiterLogin(true)} className='text-gray-600'>Recruiter Login</button>
                             <button onClick={e => setShowUserLogin(true)} className='bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full'>Login</button>
                         </div>

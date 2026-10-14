@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String },
     resume: { type: String, default: '' },
+    resumeText: { type: String, default: '' },
     image: { type: String, default: '' },
     resetOtp: { type: String, default: '' },
     resetOtpExpire: { type: Number, default: 0 }

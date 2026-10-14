@@ -10,11 +10,26 @@ const Hero = () => {
     const locationRef = useRef(null)
 
     const onSearch = () => {
+        const title = titleRef.current ? titleRef.current.value.trim() : ''
+        const location = locationRef.current ? locationRef.current.value.trim() : ''
+
         setSearchFilter({
-            title: titleRef.current.value,
-            location: locationRef.current.value
+            title,
+            location
         })
         setIsSearched(true)
+
+        // Smooth scroll to job list without changing window hash or causing page jumps
+        const jobListElement = document.getElementById('job-list')
+        if (jobListElement) {
+            jobListElement.scrollIntoView({ behavior: 'smooth' })
+        }
+    }
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            onSearch()
+        }
     }
 
     return (
@@ -29,6 +44,7 @@ const Hero = () => {
                             placeholder='Search for jobs'
                             className='max-sm:text-xs p-2 rounded outline-none w-full'
                             ref={titleRef}
+                            onKeyDown={handleKeyDown}
                         />
                     </div>
                     <div className='flex items-center'>
@@ -37,9 +53,10 @@ const Hero = () => {
                             placeholder='Location'
                             className='max-sm:text-xs p-2 rounded outline-none w-full'
                             ref={locationRef}
+                            onKeyDown={handleKeyDown}
                         />
                     </div>
-                    <button onClick={onSearch} className='bg-blue-600 px-6 py-2 rounded text-white m-1'>Search</button>
+                    <button onClick={onSearch} className='bg-blue-600 px-6 py-2 rounded text-white m-1 hover:bg-blue-700 transition'>Search</button>
                 </div>
             </div>
 

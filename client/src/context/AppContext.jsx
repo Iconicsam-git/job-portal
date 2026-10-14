@@ -20,6 +20,7 @@ export const AppContextProvider = (props) => {
 
     const [showRecruiterLogin, setShowRecruiterLogin] = useState(false)
     const [showUserLogin, setShowUserLogin] = useState(false)
+    const [showAdminLogin, setShowAdminLogin] = useState(false)
 
     const [companyToken, setCompanyToken] = useState(null)
     const [companyData, setCompanyData] = useState(null)
@@ -27,6 +28,8 @@ export const AppContextProvider = (props) => {
     const [userToken, setUserToken] = useState(null)
     const [userData, setUserData] = useState(null)
     const [userApplications, setUserApplications] = useState([])
+
+    const [adminToken, setAdminToken] = useState(null)
 
     // Function to Fetch Jobs
     const fetchJobs = async () => {
@@ -109,20 +112,29 @@ export const AppContextProvider = (props) => {
         localStorage.removeItem('userToken')
     }
 
-    // Retrive Company & User Tokens From LocalStorage
+    // Function to Log Admin Out
+    const logoutAdmin = () => {
+        setAdminToken(null)
+        localStorage.removeItem('adminToken')
+    }
+
+    // Retrieve Company, User & Admin Tokens From LocalStorage
     useEffect(() => {
         fetchJobs()
 
         const storedCompanyToken = localStorage.getItem('companyToken')
-
         if (storedCompanyToken) {
             setCompanyToken(storedCompanyToken)
         }
 
         const storedUserToken = localStorage.getItem('userToken')
-
         if (storedUserToken) {
             setUserToken(storedUserToken)
+        }
+
+        const storedAdminToken = localStorage.getItem('adminToken')
+        if (storedAdminToken) {
+            setAdminToken(storedAdminToken)
         }
 
     }, [])
@@ -149,16 +161,18 @@ export const AppContextProvider = (props) => {
         jobsLoading,
         showRecruiterLogin, setShowRecruiterLogin,
         showUserLogin, setShowUserLogin,
+        showAdminLogin, setShowAdminLogin,
         companyToken, setCompanyToken,
         companyData, setCompanyData,
         backendUrl,
         userToken, setUserToken,
         userData, setUserData,
         userApplications, setUserApplications,
+        adminToken, setAdminToken,
         fetchUserData,
         fetchUserApplications,
         logoutUser,
-
+        logoutAdmin,
     }
 
     return (<AppContext.Provider value={value}>

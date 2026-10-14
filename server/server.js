@@ -8,6 +8,7 @@ import companyRoutes from './routes/companyRoutes.js'
 import connectCloudinary from './config/cloudinary.js'
 import jobRoutes from './routes/jobRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
 
 
 // Initialize Express
@@ -29,6 +30,7 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 app.use('/api/company', companyRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/admin', adminRoutes)
 
 // Port
 const PORT = process.env.PORT || 5000
