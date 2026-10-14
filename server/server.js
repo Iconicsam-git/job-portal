@@ -40,6 +40,12 @@ if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);
 }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-})
+// Export Express app for Vercel Serverless Function runtime
+export default app;
+
+// In local development, start the HTTP server
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
